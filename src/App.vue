@@ -6,6 +6,7 @@
     <input class="form-control" type="text" v-model="searchText" placeholder="Search" >
     <hr />
     <TodoSimpleForm @add-todo="addTodo"/>
+    <div>{{ error }}</div>
     <div v-if="!filteredTodoList.length">
       There is nothing to display
     </div>
@@ -20,6 +21,7 @@
 import { computed, ref } from 'vue';
 import TodoSimpleForm from './components/TodoSimpleForm.vue';
 import TodoList from './components/TodoList.vue';
+import axios from 'axios';
 
 export default {
   // 컴포넌트 등록
@@ -30,9 +32,23 @@ export default {
 
   setup() {
     const todoList = ref([]);
+    const error = ref('');
 
     const addTodo = (todo) => {
-      todoList.value.push(todo);
+      error.value = '';
+      // 링크에 post로 요청을 하고
+      axios.post('http://localhost:3000/todoList', {
+        subject: todo.subject,
+        completed: todo.completed
+      }).then(res => {
+        // 응답 했을 때 작동 (DB에 저장)
+        console.log(res);
+        todoList.value.push(res.data);
+      }).catch(err => {
+        // 에러 일 때
+        console.log(err);
+        error.value = "Something Error...";
+      });
     };
 
     const deleteTodo = (index) => {
@@ -61,7 +77,8 @@ export default {
       deleteTodo,
       toggleTodo,
       searchText,
-      filteredTodoList
+      filteredTodoList,
+      error
     };
   }
 }
